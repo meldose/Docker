@@ -1,18 +1,19 @@
-import rospy
-from sensor_msgs.msg import Image
-from vision_msgs.msg import Detection2DArray, Detection2D, ObjectHypothesisWithPose, BoundingBox2D
-from cv_bridge import CvBridge
-import cv2
-import os
-import glob
-import json
+import rospy # imported rospy   
+from sensor_msgs.msg import Image # imported Image module
+from vision_msgs.msg import Detection2DArray, Detection2D, ObjectHypothesisWithPose, BoundingBox2D # imported vision dependencies
+from cv_bridge import CvBridge # imported Cv Bridge
+import cv2 # imported  cv2
+import os # imported os moudle 
+import glob # imported glob module
+import json # imported json module
  
+ # class Annotated Image Publisher
 class AnnotatedImagePublisher:
     def __init__(self):
-        rospy.init_node('annotated_image_publisher', anonymous=True)
-        self.image_pub = rospy.Publisher('/instance_segmentation/visualisation', Image, queue_size=10)
-        self.detection_pub = rospy.Publisher('/instance_segmentation/detections', Detection2DArray, queue_size=10)
-        self.bridge = CvBridge()
+        rospy.init_node('annotated_image_publisher', anonymous=True) #initialise the node
+        self.image_pub = rospy.Publisher('/instance_segmentation/visualisation', Image, queue_size=10) # created publisher for image 
+        self.detection_pub = rospy.Publisher('/instance_segmentation/detections', Detection2DArray, queue_size=10) # created publisher for detection
+        self.bridge = CvBridge() # open cv bridge 
  
         # Path to image folder and annotations
         self.image_dir = '/home/neura_ai/data/object_perception/trained_models/instance_segmentation/yolo/lavera_s/v_1/'
@@ -32,6 +33,7 @@ class AnnotatedImagePublisher:
         base_name = os.path.splitext(os.path.basename(image_path))[0]
         json_path = os.path.join(self.annotation_dir, base_name + '.json')
  
+ #checking if the path exist or not 
         if not os.path.exists(json_path):
             rospy.logwarn(f"No annotation found for {base_name}")
             return []
@@ -44,6 +46,7 @@ class AnnotatedImagePublisher:
                 rospy.logwarn(f"Failed to load JSON {json_path}: {e}")
                 return []
  
+ # setting the annotations 
     def draw_annotations(self, img, annotations):
         for ann in annotations:
             bbox = ann.get('bbox')
@@ -55,6 +58,7 @@ class AnnotatedImagePublisher:
                             cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
         return img
  
+ # function for detection message
     def create_detection_message(self, annotations, header):
         detection_array = Detection2DArray()
         detection_array.header = header
@@ -93,6 +97,7 @@ class AnnotatedImagePublisher:
  
         return detection_array
  
+# function for start publishing 
     def start_publishing(self):
         while not rospy.is_shutdown():
             if self.index >= len(self.image_paths):
@@ -131,6 +136,7 @@ class AnnotatedImagePublisher:
             self.index += 1
             self.rate.sleep()
  
+# calling main function 
 if __name__ == '__main__':
     try:
         publisher = AnnotatedImagePublisher()

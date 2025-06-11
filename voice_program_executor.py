@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
-import rospy
-import subprocess
-import os
-from std_msgs.msg import String
+import rospy # imported rospy
+import subprocess  # imported subprocess
+import os # imported os module 
+from std_msgs.msg import String # imported String   
 
 
+# class for Voice Program Executor
 class VoiceProgramExecutor():
     def __init__(self):
-        self._sub_command = rospy.Subscriber("/command", String, self._command_cb)
+        self._sub_command = rospy.Subscriber("/command", String, self.command)
         self._program_dir = ""
 
-    def _command_cb(self, msg: String):
+# function for command 
+    def command(self, msg: String):
         command = msg.data
         command_list = command.split(" ")
         if command_list[0] != "sort":
@@ -21,6 +23,7 @@ class VoiceProgramExecutor():
         program_path = os.path.join(self._program_dir, f"sort_{command_list[1]}.py")
         subprocess.run([script_path, program_path], check=True)
 
+# calling main function 
 if __name__ == "__main__":
     rospy.init_node("voice_program_executor")
     VPE = VoiceProgramExecutor
