@@ -1,0 +1,151 @@
+services:
+  # neura_ai_database:
+  #   environment:
+  #     - ROS_MASTER_URI=http://192.168.2.14:11311/
+  #     - ROS_HOSTNAME=192.168.2.99
+  #     - ROS_IP=192.168.2.99
+
+  neura_ai_data_manager:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_gui_visualization:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_instance_segmentation:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_bin_detection:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_pose_estimation:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_hand_detection:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  # neura_ai_handeye_calibration:
+  #   environment:
+  #     - ROS_MASTER_URI=http://192.168.2.14:11311/
+  #     - ROS_HOSTNAME=192.168.2.99
+  #     - ROS_IP=192.168.2.99
+
+  # neura_ai_handeye_calibration_publisher:
+  #   environment:
+  #     - ROS_MASTER_URI=http://192.168.2.14:11311/
+  #     - ROS_HOSTNAME=192.168.2.99
+  #     - ROS_IP=192.168.2.99
+
+  neura_ai_marker_detection:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_grasp_planner:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_grasp_calculate_pick_offset:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_hand_pose_estimation:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_manipulation_sequence_generator:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_grasp_recorder:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_stable_pose_generator:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+  
+  neura_ai_pointing_point_detection:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_scan_reconstruction:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_scan_texture_mapping:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  # neura_ai_voice_activation:
+  #   environment:
+  #     - ROS_MASTER_URI=http://192.168.2.14:11311/
+  #     - ROS_HOSTNAME=192.168.2.99
+  #     - ROS_IP=192.168.2.99
+
+  # neura_ai_voice_commanding:
+  #   environment:
+  #     - ROS_MASTER_URI=http://192.168.2.14:11311/
+  #     - ROS_HOSTNAME=192.168.2.99
+  #     - ROS_IP=192.168.2.99
+
+  neura_ai_motion_planner:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_move_group:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_srdf_creator:
+    environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+
+  neura_ai_tool_updater:
+     environment:
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+

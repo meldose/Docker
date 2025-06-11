@@ -1,0 +1,639 @@
+services:
+  realsense_camera:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:realsense-camera
+    container_name: neura-ai-realsense-camera
+    privileged: true
+    tty: true
+    network_mode: "host"
+    user: root
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    volumes:
+      - /dev:/dev
+    device_cgroup_rules:
+      - 'c 81:* rmw'
+      - 'c 189:* rmw'
+  
+  rviz2:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:microservice-engine
+    container_name: rviz2
+    tty: true
+    network_mode: "host"
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - DISPLAY=$DISPLAY
+    runtime: "nvidia"
+    command: ["rviz2"]
+
+  ai_microphone:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:microphone
+    container_name: neura-ai-microphone
+    privileged: true
+    tty: true
+    network_mode: "host"
+    user: root
+    devices:
+      - /dev/snd:/dev/snd
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+      - /etc/asound.conf:/etc/asound.conf:ro
+      - /usr/share/alsa:/usr/share/alsa:ro
+    entrypoint: /ros2_entrypoint.sh
+    command: ["ros2", "run", "respeaker_ros2", "respeaker_node_ros2.py"]
+
+  neura_ai_microservice_engine:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:microservice-engine
+    container_name: neura-ai-microservice-engine
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+      - $HOME/neura/neuraverse_ws/git:/home/neura_ai/work_dir
+    working_dir: /home/neura_ai/work_dir/neura_ai_microservice
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: [ "bash", "-c", "pip3 install -e . && exec bash" ]
+
+  neura_ai_database:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:database
+    container_name: neura-ai-database-database
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+      - /etc/neura/:/etc/neura
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_ai_database", "neura_ai_database.launch.py"]
+
+  # neura_ai_data_manager:
+  #   image: neura_ai_database:latest
+  #   container_name: neura_ai_database-data_manager
+  #   privileged: true
+  #   tty: true
+  #   volumes:
+  #     - $HOME/data:/home/neura_ai/data
+  #     - $HOME/data:/root/data
+  #     - $HOME/log_data:/home/neura_ai/log_data
+  #     - /home/chun-wei.tung/alan/gitlab/neura_ai_microservice_docker/entrypoints/ros2_entrypoint.sh:/ros2_entrypoint.sh
+  #   network_mode: "host"
+  #   runtime: "nvidia"
+  #   entrypoint: ["/ros2_entrypoint.sh"]
+  #   command: ["roslaunch", "neura_data_management", "launch_data_manager.launch"]
+
+  # neura_ai_gui_visualization:
+  #   image: neura_ai_database:latest
+  #   container_name: neura_ai_database-gui_visualization
+  #   privileged: true
+  #   tty: true
+  #   volumes:
+  #     - $HOME/data:/home/neura_ai/data
+  #     - /home/chun-wei.tung/alan/gitlab/neura_ai_microservice_docker/entrypoints/ros2_entrypoint.sh:/ros2_entrypoint.sh
+  #   network_mode: "host"
+  #   runtime: "nvidia"
+  #   entrypoint: ["/ros2_entrypoint.sh"]
+  #   command: ["roslaunch", "neura_ai_gui_visualization", "ai_gui_visualization.launch"]
+
+  neura_ai_instance_segmentation:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:instance-segmentation
+    container_name: neura-ai-instance-segmentation
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+      - /tmp:/tmp
+    network_mode: "host"
+    runtime: "nvidia"
+    command: ["ros2", "launch", "instance_segmentation_ros", "launch_segmentation_inference.launch"]
+    # command: ["bash"]
+
+  neura_ai_pose_estimation:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:pose-estimation
+    container_name: neura-ai-pose-estimation
+    privileged: true
+    tty: true
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+      - /tmp:/tmp
+      - /dev:/dev  
+    group_add:
+      - "109"  # render group
+      - "44"   # video group
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "pose_estimation_ros", "launch_pose_estimation_inference.launch"]
+
+  neura_ai_bin_detection:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:bin-detection
+    container_name: neura-ai-bin-detection
+    privileged: true
+    tty: true
+    volumes:
+      - $HOME/data:/home/neura_ai/data_manager
+      - $HOME/data:/home/neura_ai/data
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_bin_detection", "bin_detection.launch.py"]
+
+  # neura_ai_hand_detection:
+  #   image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:hand-detection
+  #   container_name: neura-ai-hand_detection
+  #   privileged: true
+  #   tty: true
+  #   volumes:
+  #     - $HOME/data:/home/neura_ai/data
+  #   network_mode: "host"
+  #   runtime: "nvidia"
+  #   entrypoint: ["/ros2_entrypoint.sh"]
+  #   command: ["rosrun", "neura_hand_detection", "finger_follower_action_server.py"]
+
+  # neura_ai_handeye_calibration:
+  #   image: neura_ai_handeye_calibration:latest
+  #   container_name: neura_ai_handeye_calibration
+  #   privileged: true
+  #   tty: true
+  #   environment:
+  #     - HOME=/home/neura_ai
+  #     - USER=neura_ai
+  #   volumes:
+  #     - $HOME/data:/home/neura_ai/data
+  #     - /home/chun-wei.tung/alan/gitlab/neura_ai_microservice_docker/entrypoints/ros2_entrypoint.sh:/ros2_entrypoint.sh
+  #   network_mode: "host"
+  #   runtime: "nvidia"
+  #   entrypoint: ["/ros2_entrypoint.sh"]
+  #   command: ["rosrun", "neura_handeye_calibration", "node"]
+
+  # neura_ai_handeye_calibration_publisher:
+  #   image: neura_ai_handeye_calibration:latest
+  #   container_name: neura_ai_handeye_calibration_publisher
+  #   privileged: true
+  #   tty: true
+  #   volumes:
+  #     - $HOME/data:/home/neura_ai/data
+  #     - /home/chun-wei.tung/alan/gitlab/neura_ai_microservice_docker/entrypoints/ros2_entrypoint.sh:/ros2_entrypoint.sh
+  #   network_mode: "host"
+  #   runtime: "nvidia"
+  #   entrypoint: ["/ros2_entrypoint.sh"]
+  #   command: ["rosrun", "neura_handeye_calibration", "publisher_node"]
+  
+  neura_finger_point_detection:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:landmarks-detection
+    container_name: neura-ai-finger-point-detection
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "run", "neura_landmarks_detection", "finger_detector"]
+
+  neura_hand_pose_detection:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:landmarks-detection
+    container_name: neura-ai-hand-pose-detection
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "run", "neura_landmarks_detection", "hand_pose_detector"]
+
+  neura_hand_gesture_detection:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:landmarks-detection
+    container_name: neura-hand-gesture-detection
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "run", "neura_landmarks_detection", "hand_gesture_classifier"]
+
+  neura_tracking:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:landmarks-detection
+    container_name: neura-finger-tracking
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "run", "neura_landmarks_detection", "finger_follower"]
+  
+  neura_human_pose_detection:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:landmarks-detection
+    container_name: neura-human-pose-detection
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "run", "neura_landmarks_detection", "human_pose_detector"]
+
+  neura_ai_marker_detection:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:marker-detection
+    container_name: neura-ai-marker-detection
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_marker_detection", "marker_detection.launch.py"]
+
+  neura_ai_grasp_planner:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:grasp-planner
+    container_name: neura-ai-grasp-planner
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_grasp_planner", "neura_grasp_pipeline.launch.py"]
+  
+  neura_ai_gpd:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:grasp-engines
+    container_name: neura-ai-gpd
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "gpd", "gpd_ros_node.launch.py"]
+
+  neura_ai_pose_aware_grasp_engine:
+      image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:grasp-engines
+      container_name: neura-ai-pose_aware_grasp_planner
+      privileged: true
+      tty: true
+      environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+
+      volumes:
+        - $HOME/data:/home/neura_ai/data
+      network_mode: "host"
+      runtime: "nvidia"
+      entrypoint: ["/ros2_entrypoint.sh"]
+      command: ["ros2", "launch", "neura_ai_pose_aware_grasp_planner", "neura_ai_pose_aware_grasp_generator_node.launch.py"]
+
+  # neura_ai_pointing_point_detection:
+  
+  # neura_ai_pointing_point_detection:
+  #   image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:grasp-planner
+  #   container_name: neura-ai-pointing-point-detection
+  #   privileged: true
+  #   tty: true
+  #   volumes:
+  #     - $HOME/data:/home/neura_ai/data
+  #   network_mode: "host"
+  #   runtime: "nvidia"
+  #   entrypoint: ["/ros2_entrypoint.sh"]
+  #   command: ["roslaunch", "neura_pointing_point_detection", "launch_neura_pointing_point_detection.launch"]
+
+  # neura_ai_grasp_recorder:
+  #   image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:grasp-recorder
+  #   container_name: neura-ai-grasp-recorder
+  #   privileged: true
+  #   tty: true
+  #   volumes:
+  #     - $HOME/data:/home/neura_ai/data
+  #   network_mode: "host"
+  #   runtime: "nvidia"
+  #   entrypoint: ["/ros2_entrypoint.sh"]
+  #   command: ["roslaunch", "neura_grasp_recording", "launch_grasp_recording_server.launch"]
+
+  simple_neurapy:
+    image: simple-neurapy:latest
+    container_name: simple-neurapy
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    volumes: 
+      - $HOME/neura/neuraverse_ws/git/simple_neurapy:/home/neura_ai/neurapy
+    working_dir: /home/neura_ai/neurapy
+    network_mode: "host"
+    runtime: "nvidia"
+    command: ["bash"]
+
+  neura_ai_scan:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:robot-scan
+    container_name: neura-ai-robot-scan
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_robot_scan", "neura_robot_scan.launch.py"]
+
+  neura_ai_handeye_calibration:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:handeye-calibration
+    container_name: neura-ai-handeye-calibration
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "run", "neura_handeye_calibration", "handeye_calib_publisher_node.py"]
+    # command: ["bash"]
+
+  neura_ai_wakeword_detection:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:voice-interaction
+    container_name: neura-ai-wakeword-detection
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - ALSA_CARD=1 
+    volumes:
+      - /usr/share/alsa:/usr/share/alsa
+      - $HOME/data:/home/neura_ai/data
+      - /dev/snd:/dev/snd
+      - $HOME/data/voice_data/asound.conf:/etc/asound.conf
+    devices:
+      - /dev/snd  # Give access to sound devices
+    group_add:
+      - audio    
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_wakeword_detection", "neura_wakeword_detection_launch.py"]
+
+  neura_ai_speech_to_text:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:voice-interaction
+    container_name: neura-ai-speech-to-text
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - ALSA_CARD=1 
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+      - /usr/share/alsa:/usr/share/alsa
+      - /dev/snd:/dev/snd
+      - $HOME/data/voice_data/asound.conf:/etc/asound.conf
+    devices:
+      - /dev/snd  # Give access to sound devices
+    group_add:
+      - audio   
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_speech_to_text", "neura_speech_to_text_launch.py"]
+
+  neura_ai_natural_language_understanding:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:voice-interaction
+    container_name: neura-ai-natural-language-understanding
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - OPENAI_API_KEY=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
+      - ALSA_CARD=1 
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+      - /usr/share/alsa:/usr/share/alsa
+      - /dev/snd:/dev/snd
+      - $HOME/data/voice_data/asound.conf:/etc/asound.conf
+    devices:
+      - /dev/snd  # Give access to sound devices
+    group_add:
+      - audio   
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_conversational_ai", "neura_conversational_ai_launch.py"]
+
+  neura_ai_text_to_speech:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:voice-interaction
+    container_name: neura-ai-text-to-speech
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - ELEVENLABS_API_KEY=sk_3f4e265c030a8443ceb0d7e65456d16a1b75695a254d806f
+      - ALSA_CARD=1 
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+      - /usr/share/alsa:/usr/share/alsa
+      - /dev/snd:/dev/snd
+      - $HOME/data/voice_data/asound.conf:/etc/asound.conf
+    devices:
+      - /dev/snd  # Give access to sound devices
+    group_add:
+      - audio   
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_text_to_speech", "neura_text_to_speech_launch.py"]
+
+  neura_ai_audio_engine:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:audio-engine
+    container_name: neura-ai-audio-engine
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - ALSA_CARD=1
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+      - /usr/share/alsa:/usr/share/alsa
+      - /dev/snd:/dev/snd
+      - $HOME/data/voice_data/asound.conf:/etc/asound.conf
+    devices:
+      - /dev/snd  # Give access to sound devices
+    group_add:
+      - audio   
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["bash"]
+
+  # neura_ai_voice_commanding:
+  #   image: neura_ai_voice_interaction:latest
+  #   container_name: neura_ai_voice-voice_commanding
+  #   privileged: true
+  #   tty: true
+  #   environment:
+  #     - HOME=/home/neura_ai
+  #     - USER=neura_ai
+  #   volumes:
+  #     - $HOME/data:/home/neura_ai/data
+  #     - /home/chun-wei.tung/alan/gitlab/neura_ai_microservice_docker/entrypoints/ros2_entrypoint.sh:/ros2_entrypoint.sh
+  #   network_mode: "host"
+  #   runtime: "nvidia"
+  #   entrypoint: ["/ros2_entrypoint.sh"]
+  #   command: ["roslaunch", "neura_voice_control", "neura_voice_commanding.launch"]
+    
+  neura_ai_motion_planner:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:motion-planner
+    container_name: neura-ai-motion-planner
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - ROS_DOMAIN_ID=42
+    volumes:
+      - /tmp:/tmp
+    #depends_on:
+    #  - neura_ai_moveit_config
+    network_mode: "host"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_ai_motion_planner", "motion_planning.launch.py"]
+
+  neura_ai_moveit_config:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:motion-planner
+    container_name: neura-ai-motion_planning
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - ROS_DOMAIN_ID=42
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+      - /tmp:/tmp
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_ai_moveit_config", "demo.launch.py", "robot_name:=maira7M"]
+
+
+  neura_ai_ik_solver:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:motion-planner
+    container_name: neura-ai-ik-solver
+    privileged: true
+    tty: true
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - ROS_DOMAIN_ID=42
+    volumes:
+      - /tmp:/tmp
+    network_mode: "host"
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["bash"]
+
+  # neura_ai_srdf_creator:
+  #   image: neura_ai_motion_planning:latest
+  #   container_name: neura_ai_motion-srdf_creator
+  #   privileged: true
+  #   tty: true
+
+  #   volumes:
+  #     - $HOME/data:/home/neura_ai/data
+  #     - /home/chun-wei.tung/alan/gitlab/neura_ai_microservice_docker/entrypoints/ros2_entrypoint.sh:/ros2_entrypoint.sh
+  #     - /tmp:/tmp
+  #     - /etc/neura/robot_system:/etc/neura/robot_system
+  #   network_mode: "host"
+  #   runtime: "nvidia"
+  #   entrypoint: ["/ros2_entrypoint.sh"]
+  #   command: ["roslaunch", "neura_ai_motion_planner", "example_srdf_creator.launch"]
+
+  # neura_ai_tool_updater:
+  #   image: neura_ai_motion_planning:latest
+  #   container_name: neura_ai_motion-tool_updater
+  #   privileged: true
+  #   tty: true
+
+  #   volumes:
+  #     - $HOME/data:/home/neura_ai/data
+  #     - /home/chun-wei.tung/alan/gitlab/neura_ai_microservice_docker/entrypoints/ros2_entrypoint.sh:/ros2_entrypoint.sh
+  #     - /tmp:/tmp
+  #     - /etc/neura/robot_system:/etc/neura/robot_system
+  #   network_mode: "host"
+  #   runtime: "nvidia"
+  #   depends_on:
+  #     - neura_ai_srdf_creator
+  #   entrypoint: ["/ros2_entrypoint.sh"]
+  #   command: ["roslaunch", "neura_urdf_manager", "neura_tool_urdf_updater.launch"]
+
+  neura_ai_robot_driver:
+    image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:robot-driver
+    container_name: neura-ai-robot-driver
+    privileged: true
+    tty: true
+    environment:
+      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp  # or rmw_cyclonedds_cpp
+      - FASTDDS_DISCOVERY_SERVER=your_server_ip
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    volumes:
+      - /etc/neura:/etc/neura
+      - /tmp:/tmp
+      - /home/neura_ai/.ssh:/home/neura_ai/.ssh
+    entrypoint: ["/ros2_entrypoint.sh"]
+    command: ["ros2", "launch", "neura_ai_robot_driver", "example_robot.launch.py", "robot_name:=maira7M"]
+
+  ultralytics_tensorrt_interface:
+      image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:tensorrt-interface
+      container_name: ultralytics-tensorrt-interface
+      privileged: true
+      tty: true
+      environment:
+        - RMW_IMPLEMENTATION=rmw_fastrtps_cpp  # or rmw_cyclonedds_cpp
+        - FASTDDS_DISCOVERY_SERVER=your_server_ip
+        - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      volumes:
+        - /etc/neura:/etc/neura
+        - /tmp:/tmp
+        - /home/neura_ai/.ssh:/home/neura_ai/.ssh
+      runtime: "nvidia"
+      entrypoint: ["/ros2_entrypoint.sh"]
+      command: ["ros2", "launch", "tensorrt_infer_core", "ultralytics.launch.py"]
+
+  foundationpose_tensorrt_interface:
+      image: 014056956499.dkr.ecr.eu-central-1.amazonaws.com/neura-robotics-ai/deployer-maira:tensorrt-interface
+      container_name: foundationpose-tensorrt-interface
+      privileged: true
+      tty: true
+      environment:
+        - RMW_IMPLEMENTATION=rmw_fastrtps_cpp  # or rmw_cyclonedds_cpp
+        - FASTDDS_DISCOVERY_SERVER=your_server_ip
+        - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      volumes:
+        - /etc/neura:/etc/neura
+        - /tmp:/tmp
+        - /home/neura_ai/.ssh:/home/neura_ai/.ssh
+      runtime: "nvidia"
+      entrypoint: ["/ros2_entrypoint.sh"]
+      command: ["ros2", "launch", "tensorrt_infer_core", "foundationpose.launch.py"]

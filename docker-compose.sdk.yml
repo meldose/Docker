@@ -1,0 +1,26 @@
+services:
+  neura_ai_sdk:
+    image: neura_ai_sdk:latest
+    container_name: neura_ai_sdk
+    privileged: true
+    tty: true
+    environment:
+      - HOME=/home/neura_ai
+      - USER=neura_ai
+      - ROS_MASTER_URI=http://192.168.2.14:11311/
+      - ROS_HOSTNAME=192.168.2.99
+      - ROS_IP=192.168.2.99
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+      - $HOME/data:/root/data
+      - $HOME/log_data:/home/neura_ai/log_data
+      - $HOME/alan/gitlab/neura_ai_microservice:/home/neura_ai/neura_ai_microservice
+      - /tmp:/tmp
+    network_mode: "host"
+    runtime: "nvidia"
+    working_dir: /home/neura_ai/neura_ai_microservice
+    entrypoint: ["/ros_entrypoint.sh"]
+    command: ["/bin/bash", "-c", "pip3 install -e . && exec bash"]
+
+
+

@@ -1,0 +1,67 @@
+services:
+  realsense_ros2:
+    image: neura-ai-sensor-camera:ros2
+    container_name: neura-ai-camera-ros2
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.camera.realsense.ros2
+    privileged: true
+    tty: true
+    network_mode: "host"
+    user: root
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+    volumes:
+      - /dev:/dev
+    device_cgroup_rules:
+      - 'c 81:* rmw'
+      - 'c 189:* rmw'
+
+  neura_ai_instance_segmentation:
+    image: neura_ai_instance_segmentation:ros2
+    container_name: neura_ai_perception-instance_segmentation-ros2
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.perception.instance_segmentation.ros2
+    tty: true
+    network_mode: "host"
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - HOME=/home/neura_ai
+      - USER=neura_ai
+      - DISPLAY=$DISPLAY
+    volumes:
+      - $HOME/data:/home/neura_ai/data
+    runtime: "nvidia"
+
+  rviz2:
+    image: neura_ai_instance_segmentation:ros2
+    container_name: rviz2
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.perception.instance_segmentation.ros2
+    tty: true
+    network_mode: "host"
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - HOME=/home/neura_ai
+      - USER=neura_ai
+      - DISPLAY=$DISPLAY
+    runtime: "nvidia"
+    command: ["rviz2"]
+
+  neura_ai_node_engine:
+    image: neura_ai_node_engine:latest
+    container_name: neura-ai-node-engine
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.perception.instance_segmentation.ros2
+    tty: true
+    network_mode: "host"
+    environment:
+      - FASTDDS_BUILTIN_TRANSPORTS=UDPv4
+      - HOME=/home/neura_ai
+      - USER=neura_ai
+    volumes:
+      - $HOME/neura/neuraverse_ws:/home/neura_ai/neuraverse_ws
+    command: ["bash"]

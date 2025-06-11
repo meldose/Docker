@@ -1,0 +1,18 @@
+services:
+  neura_realsense:
+    image: neura/realsense:alpha-v1
+    build:
+      context: .
+      dockerfile: Dockerfile.realsense
+    privileged: true
+    tty: true
+    volumes:
+      - /dev:/dev
+    device_cgroup_rules:
+      - 'c 81:* rmw'
+      - 'c 189:* rmw'
+    network_mode: "host"
+    runtime: "nvidia"
+    restart: unless-stopped
+    command: ["roslaunch", "realsense2_camera", "rs_rgbd.launch"]
+

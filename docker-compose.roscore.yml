@@ -1,0 +1,9 @@
+services:
+  roscore:
+    image: neura_ai_database:latest
+    container_name: roscore
+    tty: true
+    network_mode: "host"
+    runtime: "nvidia"
+    entrypoint: ["/ros_entrypoint.sh"]
+    command: ["roscore"]
